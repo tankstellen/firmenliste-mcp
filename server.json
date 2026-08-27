@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "net.firmenliste/mcp",
+  "description": "B2B company address data for Germany, Austria and Switzerland: search 6,400+ industry lists, check record counts and field coverage, get binding price quotes. No auth required.",
+  "repository": {
+    "url": "https://github.com/REPLACE_GITHUB_USER/firmenliste-mcp",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "websiteUrl": "https://www.firmenliste.net",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://firmenliste-mcp.cf-firmenliste.workers.dev"
+    }
+  ]
+}
