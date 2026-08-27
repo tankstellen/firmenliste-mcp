@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
-  "name": "net.firmenliste/mcp",
-  "description": "B2B company address data for Germany, Austria and Switzerland: search 6,400+ industry lists, check record counts and field coverage, get binding price quotes. No auth required.",
+  "name": "io.github.tankstellen/firmenliste-mcp",
+  "description": "B2B company address data for the DACH region: search 6,400+ industry lists and get price quotes.",
   "repository": {
     "url": "https://github.com/tankstellen/firmenliste-mcp",
     "source": "github"
