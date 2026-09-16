@@ -9,7 +9,7 @@ const TOOLS = [
   {
     name: "laender_auflisten",
     title: "Länder auflisten",
-    annotations: { readOnlyHint: true, openWorldHint: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description:
       "Listet alle Laender mit B2B-Firmenadressen von firmenliste.net: " +
       "DACH (de/at/ch) mit online kaufbaren Listen inkl. Anzahl, " +
@@ -19,7 +19,7 @@ const TOOLS = [
   {
     name: "branchen_suchen",
     title: "Adresslisten suchen",
-    annotations: { readOnlyHint: true, openWorldHint: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description:
       "Findet Adresslisten zu einem Suchbegriff (z. B. 'Golf', 'Spedition'). " +
       "Liefert pro Treffer idListe, Datensatzanzahl, Feld-Verfuegbarkeit " +
@@ -38,7 +38,7 @@ const TOOLS = [
   {
     name: "liste_details",
     title: "Listen-Details & Preise",
-    annotations: { readOnlyHint: true, openWorldHint: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description:
       "Detailansicht einer Adressliste: alle Feld-Zaehler, Bundesland-" +
       "Verteilung, enthaltene Felder und saemtliche Paketpreise " +
@@ -83,7 +83,7 @@ const TOOLS = [
   {
     name: "kaufbedingungen",
     title: "Kaufbedingungen",
-    annotations: { readOnlyHint: true, openWorldHint: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description:
       "Maschinenlesbare Kauf- und Nutzungsbedingungen (B2B-only, MwSt, " +
       "Widerruf, rechtliche Grenzen der Datennutzung nach UWG/DSGVO). " +
@@ -92,9 +92,14 @@ const TOOLS = [
   },
 ];
 
-const UA = { "User-Agent": "firmenliste-mcp/1.0 (+https://github.com/tankstellen/firmenliste-mcp)" };
+function uaHeaders(src) {
+  let ua = "firmenliste-mcp/1.0 (+https://github.com/tankstellen/firmenliste-mcp)";
+  if (src) ua += " src/" + src;
+  return { "User-Agent": ua };
+}
 
-async function callApi(name, args) {
+async function callApi(name, args, src) {
+  const UA = uaHeaders(src);
   if (name === "laender_auflisten") {
     return fetch(`${API}/laender`, { headers: UA });
   }
@@ -150,6 +155,16 @@ export default {
     }
 
     const url = new URL(request.url);
+
+    // OpenAI Apps: Domain-Verification-Challenge
+    if (url.pathname === "/.well-known/openai-apps-challenge") {
+      return new Response("XowpAx17pZchVQgDjA8WQsfSX4N3zP2VbGsQ-YLpHCI", {
+        status: 200,
+        headers: { "Content-Type": "text/plain" }
+      });
+    }
+    // Optionale Quell-Kennung (?src=intern) fuer die Log-Unterscheidung
+    const src = (url.searchParams.get("src") || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 20);
 
     // Crawler-freundlich: robots.txt erlaubt alles
     if (request.method === "GET" && url.pathname === "/robots.txt") {
@@ -228,7 +243,7 @@ export default {
       const name = params?.name;
       const args = params?.arguments || {};
       try {
-        const res = await callApi(name, args);
+        const res = await callApi(name, args, src);
         if (!res) {
           return respond(JSONRPC_ERR(id, -32602, `Unbekanntes Tool: ${name}`));
         }
